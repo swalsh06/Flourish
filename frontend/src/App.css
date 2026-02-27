@@ -9,12 +9,13 @@
 
 @media (prefers-reduced-motion: no-preference) {
   .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+     /*animation: App-logo-spin infinite 20s linear;
+    */
+     }
 }
 
 .App-header {
-  background-color: #282c34;
+  background-color: #b1e0b9;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -24,8 +25,17 @@
   color: white;
 }
 
-.App-link {
-  color: #61dafb;
+.SignUpButton {
+  background-color: #edd8ec; 
+  border: none;
+  color: #735371;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
 }
 
 @keyframes App-logo-spin {
