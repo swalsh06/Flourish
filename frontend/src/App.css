@@ -9,9 +9,8 @@
 
 @media (prefers-reduced-motion: no-preference) {
   .App-logo {
-     /*animation: App-logo-spin infinite 20s linear;
-    */
-     }
+     /* animation: App-logo-spin infinite 20s linear; */
+  }
 }
 
 .App-header {
@@ -25,24 +24,46 @@
   color: white;
 }
 
-.SignUpButton {
-  background-color: #edd8ec; 
+form {
+  background-color: rgba(255, 255, 255, 0.2); /* semi-transparent */
+  padding: 20px;
+  margin: 15px 0;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: white;
+}
+
+form h3 {
+  margin-bottom: 10px;
+}
+
+input {
+  margin: 5px 0;
+  padding: 10px;
+  width: 220px;
   border: none;
+  border-radius: 5px;
+}
+
+button {
+  padding: 10px 15px;
+  margin-top: 10px;
+  border: none;
+  border-radius: 5px;
+  background-color: #edd8ec;
   color: #735371;
-  padding: 15px 32px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
   font-size: 16px;
-  margin: 4px 2px;
   cursor: pointer;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+button:hover {
+  background-color: #d4c0d7;
+}
+
+/* Message under forms */
+form p {
+  margin-top: 10px;
+  font-weight: bold;
 }
