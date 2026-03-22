@@ -1,4 +1,6 @@
 import logo from './logo.svg';
+import { Routes, Route, useNavigate } from 'react-router-dom';
+import Home from './Home';
 import './App.css';
 import { useState } from 'react';
 
@@ -12,6 +14,8 @@ function App() {
   const [loginUsername, setLoginUsername] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [loginMessage, setLoginMessage] = useState('');
+
+  const navigate = useNavigate();
 
   // Signup handler
   const handleSignup = async (e) => {
@@ -41,6 +45,8 @@ function App() {
       });
       const text = await res.text();
       setLoginMessage(text);
+
+      navigate('/home');
     } catch (err) {
       setLoginMessage('Error connecting to server');
       console.error(err);
@@ -48,54 +54,51 @@ function App() {
   };
 
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>Welcome to Flourish</p>
+    <Routes>
+      <Route 
+        path="/"
+        element={
+              <div className="background">
+      <div className="login-container">
+        <h1>LOGIN </h1>
 
-        {/* Signup Form */}
-        <form onSubmit={handleSignup}>
-          <h3>Sign Up</h3>
-          <input
-            type="text"
-            placeholder="Username"
-            value={signupUsername}
-            onChange={(e) => setSignupUsername(e.target.value)}
-            required
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            value={signupPassword}
-            onChange={(e) => setSignupPassword(e.target.value)}
-            required
-          />
-          <button type="submit">Sign Up</button>
-          {signupMessage && <p>{signupMessage}</p>}
-        </form>
+        <form onSubmit={handleLogin}>
 
-        {/* Login Form */}
-        <form onSubmit={handleLogin} style={{ marginTop: '20px' }}>
-          <h3>Login</h3>
-          <input
-            type="text"
-            placeholder="Username"
-            value={loginUsername}
-            onChange={(e) => setLoginUsername(e.target.value)}
-            required
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            value={loginPassword}
-            onChange={(e) => setLoginPassword(e.target.value)}
-            required
-          />
+          <div className="input-group">
+            <span className="icon">👤</span>
+
+            <input
+              type="text"
+              placeholder="username"
+              value={loginUsername}
+              onChange={(e) => setLoginUsername(e.target.value)}
+              required
+            />  
+            </div>
+
+            <div className="input-group">
+              <span className="icon">🔒</span>
+              <input
+                type="password"
+                placeholder="password"
+                value={loginPassword}
+                onChange={(e) => setLoginPassword(e.target.value)}
+                required
+            />
+          </div>
+
+          <p className="signup-text">New to Flourish? Sign up</p>
           <button type="submit">Login</button>
           {loginMessage && <p>{loginMessage}</p>}
         </form>
-      </header>
+      </div>
     </div>
+        }
+      />
+
+      <Route path="/home" element={<Home />} />
+    </Routes>
+
   );
 }
 
