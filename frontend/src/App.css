@@ -90,3 +90,16 @@ form {
 .login-container button:hover {
   background-color: #94c29a;
 }
+
+
+.link-text {
+  color: #6b8f71;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s ease;
+}
+
+.link-text:hover {
+  color: #4e6f58;
+  text-decoration: underline;
+}
