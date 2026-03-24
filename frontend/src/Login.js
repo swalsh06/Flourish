@@ -25,7 +25,10 @@ function Login() {
       const text = await res.text();
       setLoginMessage(text);
 
-      navigate('/home');
+      if (res.ok) {
+        navigate('/home');
+      }
+
     } catch (err) {
       setLoginMessage('Error connecting to server');
       console.error(err);
