@@ -3,10 +3,15 @@ const express = require("express");
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 const User = require("./models/User"); // import your User model
+const eventRoutes = require("./routes/eventRoutes");
+const announcementRoutes = require("./routes/announcementRoutes");
 
 const app = express();
+
 app.use(cors()); // allow all origins (for dev)
 app.use(express.json()); // to parse JSON bodies
+app.use("/events", eventRoutes); // use event routes
+app.use("/announcements", announcementRoutes); // use announcement routes
 
 // Connect to MongoDB
 mongoose.connect("mongodb+srv://srwalsh:SWE-spring-26@flourish.evawcgk.mongodb.net/?appName=Flourish")
