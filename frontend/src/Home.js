@@ -10,6 +10,16 @@ function Home() {
     const [open, setOpen] = useState(false);
     const [orgName, setOrgName] = useState("");
     const [createdOrg, setCreatedOrg] = useState(null);
+    const [eventOpen, setEventOpen] = useState(false);
+    const [eventName, setEventName] = useState("");
+    const [eventDate, setEventDate] = useState("");
+    const [eventDescription, setEventDescription] = useState("");
+    const [eventPlace, setEventPlace] = useState("");
+    const [eventTime, setEventTime] = useState("");
+    const [announcementOpen, setAnnouncementOpen] = useState(false);
+    const [announcementTitle, setAnnouncementTitle] = useState("");
+    const [announcementMessage, setAnnouncementMessage] = useState("");
+    const [message, setMessage] = useState("");
 
     const generateCode = () => {
         return Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -34,6 +44,69 @@ function Home() {
 
         setOrgName("");
         setOpen(false);
+    };
+
+    const handleEventCreate = async () => {
+        console.log("Create event button clicked");
+
+        const eventData = {
+            event: eventName,
+            date: eventDate,
+            description: eventDescription,
+            place: eventPlace,
+            time: eventTime
+        };
+
+        try {
+            const response = await fetch("http://localhost:5000/events", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(eventData)
+            });
+
+            const data = await response.json();
+            console.log("Saved event:", data);
+            setMessage("Event created successfully!");
+
+            setEventName("");
+            setEventDate("");
+            setEventDescription("");
+            setEventPlace("");
+            setEventTime("");
+            setEventOpen(false);
+        } catch (error) {
+            console.error("Error saving event:", error);
+        }
+    };
+
+        const handleAnnouncementCreate = async () => {
+            const announcementData = {
+                title: announcementTitle,
+                message: announcementMessage,
+                organizer: "Flourish Team",
+                createdBy: "Flourish User"
+            };
+        try {
+            const response = await fetch("http://localhost:5000/announcements", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(announcementData)
+            });
+
+            const data = await response.json();
+            console.log("Saved announcement:", data);
+            setMessage("Announcement created successfully!");
+
+            setAnnouncementTitle("");
+            setAnnouncementMessage("");
+            setAnnouncementOpen(false);
+        } catch (error) {
+            console.error("Error saving announcement:", error);
+        }
     };
 
     return (
@@ -148,6 +221,30 @@ function Home() {
 
             <h1>Welcome to Flourish</h1>
 
+            <button
+                onClick={() => setEventOpen(!eventOpen)}
+                style={{
+                    marginTop: "20px",
+                    padding: "10px 20px",
+                    fontSize: "16px",
+                    cursor: "pointer"
+                }}
+            >
+                Create Event ▾
+            </button>
+
+            <button
+                onClick={() => setAnnouncementOpen(!announcementOpen)}
+                style={{
+                    marginTop: "20px",
+                    padding: "10px 20px",
+                    fontSize: "16px",
+                    cursor: "pointer"
+                }}
+            >
+                Create Announcement ▾
+            </button>
+
             {/* Dropdown container */}
             <div style={{ position: "relative", marginTop: "20px" }}>
 
@@ -196,6 +293,95 @@ function Home() {
                     </div>
                 )}
             </div>
+
+            {message && (
+                <p style={{ marginTop: "10px", color: "green" }}>{message}</p>
+            )}
+
+            {eventOpen && (
+                <div style={{
+                    marginTop: "20px",
+                    background: "#f5f5f5",
+                    border: "1px solid #ccc",
+                    borderRadius: "8px",
+                    padding: "15px",
+                    width: "300px",
+                    boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "10px"
+                }}>
+                    <input
+                        type="text"
+                        placeholder="Event name"
+                        value={eventName}
+                        onChange={(e) => setEventName(e.target.value)}
+                        style={{ padding: "8px", fontSize: "14px" }}
+                    />
+                    <input
+                        type="text"
+                        placeholder="Date"
+                        value={eventDate}
+                        onChange={(e) => setEventDate(e.target.value)}
+                        style={{ padding: "8px", fontSize: "14px" }}
+                    />
+                    <input
+                        type="text"
+                        placeholder="Description"
+                        value={eventDescription}
+                        onChange={(e) => setEventDescription(e.target.value)}
+                        style={{ padding: "8px", fontSize: "14px" }}
+                    />
+                    <input
+                        type="text"
+                        placeholder="Place"
+                        value={eventPlace}
+                        onChange={(e) => setEventPlace(e.target.value)}
+                        style={{ padding: "8px", fontSize: "14px" }}
+                    />
+                    <input
+                        type="text"
+                        placeholder="Time"
+                        value={eventTime}
+                        onChange={(e) => setEventTime(e.target.value)}
+                        style={{ padding: "8px", fontSize: "14px" }}
+                    />
+
+                    <button onClick={handleEventCreate}>Create</button>
+                </div>
+            )}
+
+            {announcementOpen && (
+                <div style={{
+                    marginTop: "20px",
+                    background: "#f5f5f5",
+                    border: "1px solid #ccc",
+                    borderRadius: "8px",
+                    padding: "15px",
+                    width: "300px",
+                    boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "10px"
+                }}>
+                    <input
+                        type="text"
+                        placeholder="Announcement title"
+                        value={announcementTitle}
+                        onChange={(e) => setAnnouncementTitle(e.target.value)}
+                        style={{ padding: "8px", fontSize: "14px" }}
+                    />
+                    <input
+                        type="text"
+                        placeholder="Announcement message"
+                        value={announcementMessage}
+                        onChange={(e) => setAnnouncementMessage(e.target.value)}
+                        style={{ padding: "8px", fontSize: "14px" }}
+                    />
+
+                    <button onClick={handleAnnouncementCreate}>Create</button>
+                </div>
+            )}
 
             {/* Output */}
             {createdOrg && (
