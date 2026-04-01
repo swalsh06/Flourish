@@ -31,6 +31,20 @@ const organizationSchema = new mongoose.Schema({
       type: mongoose.Schema.Types.ObjectId,
       ref: "User"
     }
+  ],
+
+  events: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Event"
+    }
+  ],
+
+  announcements: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Announcement"
+    }
   ]
 
 });

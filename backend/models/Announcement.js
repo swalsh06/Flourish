@@ -11,19 +11,13 @@ const AnnouncementSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
-  organizer: {
-    type: String,
-    required: true,
-    trim: true
-  },
   createdBy: {
-    type: String,
-    required: true,
-    trim: true
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User"
   },
-  read: {
-    type: Boolean,
-    default: false
+  readBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User"
   },
 }, 
 { timestamps: true}
