@@ -25,16 +25,15 @@ const EventSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User"
+  },
   rsvps: [
     {
-      userId: {
-        type: String,
-        required: true,
-      },
-      name: {
-        type: String,
-        required: true,
-        trim: true
+      user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User"
       },
       status: {
         type: String,
