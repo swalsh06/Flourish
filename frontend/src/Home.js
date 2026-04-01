@@ -4,10 +4,26 @@ function Home() {
     const [joinOpen, setJoinOpen] = useState(false);
     const [joinCode, setJoinCode] = useState("");
     const [joinName, setJoinName] = useState("");
-
     const [orgSelectOpen, setOrgSelectOpen] = useState(false);
-
     const [open, setOpen] = useState(false);
+
+    const userId = localStorage.getItem("userId");
+    const [organizations, setOrganizations] = useState(() => {
+        const saved = localStorage.getItem("organizations");
+        try {
+            if (saved && saved.startsWith('[')) {
+                return JSON.parse(saved);
+            }
+        } catch (e) {
+            console.error("JSON Parse Error in Home.js:", e);
+        }
+        return [];
+    });
+
+    const [activeOrg, setActiveOrg] = useState(null);
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+    const [showForm, setShowForm] = useState(null);
+
     const [orgName, setOrgName] = useState("");
     const [createdOrg, setCreatedOrg] = useState(null);
     const [eventOpen, setEventOpen] = useState(false);
@@ -25,25 +41,52 @@ function Home() {
         return Math.random().toString(36).substring(2, 8).toUpperCase();
     };
 
-    const handleJoin = () => {
-        if (!joinCode || !joinName) return;
-        // Verify code here (not implemented)
-        setJoinCode("");
-        setJoinName("");
-        setJoinOpen(false);
-    
-    }
-
-    const handleCreate = () => {
-        if (!orgName) return;
-
-        setCreatedOrg({
-            name: orgName,
-            code: generateCode()
+    const handleCreate = async () => {
+        if (!orgName){
+            return;
+        }
+        const res = await fetch("http://localhost:5000/organizations/create", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name: orgName, userId }),
         });
+        if (res.ok) {
+            const newOrg = await res.json();
+            const updated = [...organizations, newOrg];
+            setOrganizations(updated);
+            localStorage.setItem("organizations", JSON.stringify(updated));
+            setActiveOrg(newOrg);
+            setOrgName("");
+            setShowForm(null);
+            setDropdownOpen(false);
+            setMessage(`Organization Created! Code: ${newOrg.code}`);
+        }
+    };
 
-        setOrgName("");
-        setOpen(false);
+
+    const handleJoin = async () => {
+        if (!joinCode){
+            return;
+        }
+        const res = await fetch("http://localhost:5000/organizations/join", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ code: joinCode, userId }),
+        });
+        if (res.ok) {
+            const joinedOrg = await res.json();
+            const updated = [...organizations, joinedOrg];
+            setOrganizations(updated);
+            localStorage.setItem("organizations", JSON.stringify(updated));
+            setActiveOrg(joinedOrg);
+            setJoinCode("");
+            setShowForm(null);
+            setDropdownOpen(false);
+            setMessage(`Successfully joined ${joinedOrg.name}!`);
+        } else {
+            const text = await res.text();
+            setMessage(text);
+        }
     };
 
     const handleEventCreate = async () => {
@@ -110,292 +153,167 @@ function Home() {
     };
 
     return (
-        <div style={{
-            height: "100vh",
-            background: "white",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            paddingTop: "100px",
-            fontSize: "24px"
-        }}>
-            {/* Join button */}
-            <div style={{ position: "fixed", top: "20px", right: "20px" }}>
-                <button
-                    onClick={() => setJoinOpen(!joinOpen)}
-                    style={{
-                        width: "40px",
-                        height: "40px",
-                        borderRadius: "50%",
-                        fontSize: "24px",
-                        cursor: "pointer",
-                        border: "1px solid #ccc",
-                        background: "white",
-                        lineHeight: 1
-                    }}
-                >
-                    +
-                </button>
+        <div style={{ height: "100vh", background: "white" }}>
+            {/* Navbar */}
+            <div style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: "12px 24px",
+                borderBottom: "1px solid #ddd",
+                position: "relative"
+            }}>
+                <h2 style={{ margin: 0 }}>Flourish</h2>
 
-            {/* Join popup */}
-            {joinOpen && (
-                <div style={{
-                    position: "absolute",
-                    top: "50px",
-                    right: "0",
-                    background: "#f5f5f5",
-                    border: "1px solid #ccc",
-                    borderRadius: "8px",
-                    padding: "15px",
-                    width: "250px",
-                    boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "10px",
-                    zIndex: 10
-                }}>
-                    <input
-                        type="text"
-                        placeholder="Your name"
-                        value={joinName}
-                        onChange={(e) => setJoinName(e.target.value)}
-                        style={{
-                            padding: "8px",
-                            fontSize: "14px"
-                        }}
-                    />
-                    <input
-                        type="text"
-                        placeholder="Organization code"
-                        value={joinCode}
-                        onChange={(e) => setJoinCode(e.target.value)}
-                        style={{
-                            padding: "8px",
-                            fontSize: "14px"
-                        }}
-                    />
-                    <button onClick={handleJoin}>
-                        Join
+                <div style={{ position: "relative" }}>
+                    <button
+                        onClick={() => { setDropdownOpen(!dropdownOpen); setShowForm(null); }}
+                        style={{ padding: "8px 16px", fontSize: "14px", cursor: "pointer" }}
+                    >
+                        {activeOrg ? activeOrg.name : "Select Organization"} ▾
                     </button>
+
+                    {dropdownOpen && (
+                        <div style={{
+                            position: "absolute",
+                            right: 0,
+                            top: "110%",
+                            background: "white",
+                            border: "1px solid #ddd",
+                            borderRadius: "8px",
+                            minWidth: "220px",
+                            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                            zIndex: 100
+                        }}>
+                            {organizations.map(org => (
+                                <div
+                                    key={org._id}
+                                    onClick={() => { setActiveOrg(org); setDropdownOpen(false); }}
+                                    style={{
+                                        padding: "10px 16px",
+                                        cursor: "pointer",
+                                        background: activeOrg?._id === org._id ? "#f0f0f0" : "white",
+                                        fontWeight: activeOrg?._id === org._id ? "bold" : "normal"
+                                    }}
+                                >
+                                    {org.name}
+                                </div>
+                            ))}
+
+                            <hr style={{ margin: "4px 0" }} />
+
+                            {showForm === "create" ? (
+                                <div style={{ padding: "10px 16px", display: "flex", flexDirection: "column", gap: "8px" }}>
+                                    <input
+                                        placeholder="Organization name"
+                                        value={orgName}
+                                        onChange={e => setOrgName(e.target.value)}
+                                        style={{ padding: "6px", fontSize: "14px" }}
+                                    />
+                                    <button onClick={handleCreate}>Create</button>
+                                    <button onClick={() => setShowForm(null)}>Cancel</button>
+                                </div>
+                            ) : showForm === "join" ? (
+                                <div style={{ padding: "10px 16px", display: "flex", flexDirection: "column", gap: "8px" }}>
+                                    <input
+                                        placeholder="Enter org code"
+                                        value={joinCode}
+                                        onChange={e => setJoinCode(e.target.value)}
+                                        style={{ padding: "6px", fontSize: "14px" }}
+                                    />
+                                    {message && <p style={{ color: "red", fontSize: "12px", margin: 0 }}>{message}</p>}
+                                    <button onClick={handleJoin}>Join</button>
+                                    <button onClick={() => setShowForm(null)}>Cancel</button>
+                                </div>
+                            ) : (
+                                <>
+                                    <div onClick={() => setShowForm("create")} style={{ padding: "10px 16px", cursor: "pointer", color: "#555" }}>
+                                        + Create Organization
+                                    </div>
+                                    <div onClick={() => setShowForm("join")} style={{ padding: "10px 16px", cursor: "pointer", color: "#555" }}>
+                                        + Join Organization
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    )}
                 </div>
-            )}
             </div>
 
-            {/*Org select dropdown*/}
-            <div style={{ position: "fixed", top: "24px", right: "80px", display: "flex", gap: "8px", alignItems: "center" }}>
-                <button
-                    onClick={() => setOrgSelectOpen(!orgSelectOpen)}
-                    style={{
-                        padding: "8px 12px",
-                        fontSize: "14px",
-                        cursor: "pointer",
-                        border: "1px solid #ccc",
-                        borderRadius: "8px",
-                        background: "white"
-                    }}
-                >
-                    Select Organization ▾
-                </button>
-
-                {orgSelectOpen && (
-                    <div style={{
-                        position: "absolute",
-                        top: "45px",
-                        left: "0",
-                        background: "#f5f5f5",
-                        border: "1px solid #ccc",
-                        borderRadius: "8px",
-                        padding: "10px",
-                        width: "200px",
-                        boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "10px",
-                        zIndex: 10
-                    }}>
-                        <p style={{fontSize: "14px", color: "888", margin: 0}}>No organizations found.</p>
-
+            {/* Dashboard body */}
+            <div style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                height: "calc(100vh - 60px)",
+                fontSize: "24px",
+                gap: "20px"
+            }}>
+                {activeOrg ? (
+                    <div style={{ textAlign: "center" }}>
+                        <h2>Welcome to {activeOrg.name}</h2>
+                        <p style={{ fontSize: "16px", color: "#666", marginTop: "-10px" }}>
+                            Org Code: <strong style={{ color: "#007bff" }}>{activeOrg.code}</strong>
+                        </p>
                     </div>
+                ) : (
+                    <p>Create or join an organization to get started.</p>
                 )}
-            </div>
 
-            <h1>Welcome to Flourish</h1>
-
-            <button
-                onClick={() => setEventOpen(!eventOpen)}
-                style={{
-                    marginTop: "20px",
-                    padding: "10px 20px",
-                    fontSize: "16px",
-                    cursor: "pointer"
-                }}
-            >
-                Create Event ▾
-            </button>
-
-            <button
-                onClick={() => setAnnouncementOpen(!announcementOpen)}
-                style={{
-                    marginTop: "20px",
-                    padding: "10px 20px",
-                    fontSize: "16px",
-                    cursor: "pointer"
-                }}
-            >
-                Create Announcement ▾
-            </button>
-
-            {/* Dropdown container */}
-            <div style={{ position: "relative", marginTop: "20px" }}>
+                {message && <p style={{ color: "green", fontSize: "16px" }}>{message}</p>}
 
                 <button
-                    onClick={() => setOpen(!open)}
-                    style={{
-                        padding: "10px 20px",
-                        fontSize: "16px",
-                        cursor: "pointer"
-                    }}
+                    onClick={() => setEventOpen(!eventOpen)}
+                    style={{ padding: "10px 20px", fontSize: "16px", cursor: "pointer" }}
                 >
-                    Create Organization ▾
+                    Create Event ▾
                 </button>
 
-                {/* Dropdown */}
-                {open && (
+                {eventOpen && (
                     <div style={{
-                        position: "absolute",
-                        top: "45px",
-                        left: "0",
                         background: "#f5f5f5",
                         border: "1px solid #ccc",
                         borderRadius: "8px",
                         padding: "15px",
-                        width: "250px",
-                        boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
+                        width: "300px",
                         display: "flex",
                         flexDirection: "column",
-                        gap: "10px",
-                        zIndex: 10
+                        gap: "10px"
                     }}>
-                        <input
-                            type="text"
-                            placeholder="Organization name"
-                            value={orgName}
-                            onChange={(e) => setOrgName(e.target.value)}
-                            style={{
-                                padding: "8px",
-                                fontSize: "14px"
-                            }}
-                        />
+                        <input type="text" placeholder="Event name" value={eventName} onChange={(e) => setEventName(e.target.value)} style={{ padding: "8px", fontSize: "14px" }} />
+                        <input type="text" placeholder="Date" value={eventDate} onChange={(e) => setEventDate(e.target.value)} style={{ padding: "8px", fontSize: "14px" }} />
+                        <input type="text" placeholder="Description" value={eventDescription} onChange={(e) => setEventDescription(e.target.value)} style={{ padding: "8px", fontSize: "14px" }} />
+                        <input type="text" placeholder="Place" value={eventPlace} onChange={(e) => setEventPlace(e.target.value)} style={{ padding: "8px", fontSize: "14px" }} />
+                        <input type="text" placeholder="Time" value={eventTime} onChange={(e) => setEventTime(e.target.value)} style={{ padding: "8px", fontSize: "14px" }} />
+                        <button onClick={handleEventCreate}>Create</button>
+                    </div>
+                )}
 
-                        <button onClick={handleCreate}>
-                            Create
-                        </button>
+                <button
+                    onClick={() => setAnnouncementOpen(!announcementOpen)}
+                    style={{ padding: "10px 20px", fontSize: "16px", cursor: "pointer" }}
+                >
+                    Create Announcement ▾
+                </button>
+
+                {announcementOpen && (
+                    <div style={{
+                        background: "#f5f5f5",
+                        border: "1px solid #ccc",
+                        borderRadius: "8px",
+                        padding: "15px",
+                        width: "300px",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "10px"
+                    }}>
+                        <input type="text" placeholder="Announcement title" value={announcementTitle} onChange={(e) => setAnnouncementTitle(e.target.value)} style={{ padding: "8px", fontSize: "14px" }} />
+                        <input type="text" placeholder="Announcement message" value={announcementMessage} onChange={(e) => setAnnouncementMessage(e.target.value)} style={{ padding: "8px", fontSize: "14px" }} />
+                        <button onClick={handleAnnouncementCreate}>Create</button>
                     </div>
                 )}
             </div>
-
-            {message && (
-                <p style={{ marginTop: "10px", color: "green" }}>{message}</p>
-            )}
-
-            {eventOpen && (
-                <div style={{
-                    marginTop: "20px",
-                    background: "#f5f5f5",
-                    border: "1px solid #ccc",
-                    borderRadius: "8px",
-                    padding: "15px",
-                    width: "300px",
-                    boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "10px"
-                }}>
-                    <input
-                        type="text"
-                        placeholder="Event name"
-                        value={eventName}
-                        onChange={(e) => setEventName(e.target.value)}
-                        style={{ padding: "8px", fontSize: "14px" }}
-                    />
-                    <input
-                        type="text"
-                        placeholder="Date"
-                        value={eventDate}
-                        onChange={(e) => setEventDate(e.target.value)}
-                        style={{ padding: "8px", fontSize: "14px" }}
-                    />
-                    <input
-                        type="text"
-                        placeholder="Description"
-                        value={eventDescription}
-                        onChange={(e) => setEventDescription(e.target.value)}
-                        style={{ padding: "8px", fontSize: "14px" }}
-                    />
-                    <input
-                        type="text"
-                        placeholder="Place"
-                        value={eventPlace}
-                        onChange={(e) => setEventPlace(e.target.value)}
-                        style={{ padding: "8px", fontSize: "14px" }}
-                    />
-                    <input
-                        type="text"
-                        placeholder="Time"
-                        value={eventTime}
-                        onChange={(e) => setEventTime(e.target.value)}
-                        style={{ padding: "8px", fontSize: "14px" }}
-                    />
-
-                    <button onClick={handleEventCreate}>Create</button>
-                </div>
-            )}
-
-            {announcementOpen && (
-                <div style={{
-                    marginTop: "20px",
-                    background: "#f5f5f5",
-                    border: "1px solid #ccc",
-                    borderRadius: "8px",
-                    padding: "15px",
-                    width: "300px",
-                    boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "10px"
-                }}>
-                    <input
-                        type="text"
-                        placeholder="Announcement title"
-                        value={announcementTitle}
-                        onChange={(e) => setAnnouncementTitle(e.target.value)}
-                        style={{ padding: "8px", fontSize: "14px" }}
-                    />
-                    <input
-                        type="text"
-                        placeholder="Announcement message"
-                        value={announcementMessage}
-                        onChange={(e) => setAnnouncementMessage(e.target.value)}
-                        style={{ padding: "8px", fontSize: "14px" }}
-                    />
-
-                    <button onClick={handleAnnouncementCreate}>Create</button>
-                </div>
-            )}
-
-            {/* Output */}
-            {createdOrg && (
-                <div style={{
-                    marginTop: "40px",
-                    padding: "15px",
-                    border: "1px solid black",
-                    borderRadius: "8px"
-                }}>
-                    <p><strong>Organization:</strong> {createdOrg.name}</p>
-                    <p><strong>Code:</strong> {createdOrg.code}</p>
-                </div>
-            )}
-
         </div>
     );
 }

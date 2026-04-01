@@ -3,6 +3,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 const User = require("./models/User"); // import your User model
+const Organization = require("./models/Organization");
 const eventRoutes = require("./routes/eventRoutes");
 const announcementRoutes = require("./routes/announcementRoutes");
 
@@ -47,7 +48,7 @@ app.post("/login", async (req, res) => {
   const { username, password } = req.body;
 
   // find the user
-  const user = await User.findOne({ username });
+  const user = await User.findOne({ username }).populate("organizations");
 
   if (!user) {
     return res.status(400).send("User not found");
@@ -60,7 +61,65 @@ app.post("/login", async (req, res) => {
     return res.status(400).send("Invalid password");
   }
 
-  res.send("Login successful");
+  res.json({
+    userId: user._id,
+    username: user.username,
+    organizations: user.organizations
+  });
+});
+
+// Create org
+app.post("/organizations/create", async (req, res) => {
+  const { name, userId } = req.body;
+  try {
+    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+
+    const org = new Organization({ 
+      name, 
+      code, 
+      owner: userId, 
+      admins: [], 
+      members: [] 
+    });
+
+    await org.save();
+    await User.findByIdAndUpdate(userId, { $push: { organizations: org._id } });
+    res.json(org);
+  } catch (error) {
+    res.status(500).send("Error creating organization");
+  }
+});
+
+// Join org by code
+app.post("/organizations/join", async (req, res) => {
+  const { code, userId } = req.body;
+  try {
+    const org = await Organization.findOne({ code });
+    if (!org){
+      return res.status(404).send("Organization not found");
+    } 
+
+    if (org.members.includes(userId) || org.owner.toString() === userId){
+      return res.status(400).send("Already in this organization");
+    }
+      
+    org.members.push(userId);
+    await org.save();
+    await User.findByIdAndUpdate(userId, { $push: { organizations: org._id } });
+    res.json(org);
+  } catch (error) {
+    res.status(500).send("Error joining organization");
+  }
+});
+
+// Get user's orgs
+app.get("/organizations/user/:userId", async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId).populate("organizations");
+    res.json(user.organizations);
+  } catch (error) {
+    res.status(500).send("Error fetching organizations");
+  }
 });
 
 // Start server

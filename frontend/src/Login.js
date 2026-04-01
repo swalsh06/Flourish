@@ -22,16 +22,32 @@ function Login() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: loginUsername, password: loginPassword }),
       });
-      const text = await res.text();
-      setLoginMessage(text);
+
+      const contentType = res.headers.get("content-type");
 
       if (res.ok) {
+        if (contentType && contentType.includes("application/json")) {
+          const data = await res.json();
+          localStorage.setItem("userId", data.userId);
+          localStorage.setItem("username", data.username);
+          localStorage.setItem("organizations", JSON.stringify(data.organizations));
+
+          setLoginMessage("Login successful!");
+          navigate('/home');
+        } else {
+          const text = await res.text();
+          setLoginMessage(text);
+          navigate('/home');
+        }
         navigate('/home');
+      } else {
+        const errorText = await res.text();
+        setLoginMessage(errorText);
       }
 
-    } catch (err) {
+    } catch (error) {
       setLoginMessage('Error connecting to server');
-      console.error(err);
+      console.error(error);
     }
   };
 
