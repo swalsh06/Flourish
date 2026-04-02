@@ -153,19 +153,35 @@ function Home() {
     };
 
     return (
-        <div style={{ height: "100vh", background: "white" }}>
+        <div style={{ height: "100vh", background: "#C2D9C5" }}>
             {/* Navbar */}
             <div style={{
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                padding: "12px 24px",
-                borderBottom: "1px solid #ddd",
-                position: "relative"
+                padding: "5px 24px",
+                position: "relative",
             }}>
-                <h2 style={{ margin: 0 }}>Flourish</h2>
+                <h2 className="title">Flourish</h2>
 
-                <div style={{ position: "relative" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
+                    {/* Notification */}
+                    <div style={{
+                        background: "#e6e6e6",
+                        padding: "6px 14px",
+                        borderRadius: "12px",
+                        fontSize: "14px",
+                    }}>Notifications</div>
+
+                    {/* profile circle */}
+                    <div style={{
+                        width: "35px",
+                        height: "35px",
+                        borderRadius: "50%",
+                        background: "#7c86b2",
+                    }}></div>
+
+                    <div style={{ position: "relative" }}> 
                     <button
                         onClick={() => { setDropdownOpen(!dropdownOpen); setShowForm(null); }}
                         style={{ padding: "8px 16px", fontSize: "14px", cursor: "pointer" }}
@@ -240,57 +256,102 @@ function Home() {
                 </div>
             </div>
 
+        </div>
+                
+                
+
             {/* Dashboard body */}
             <div style={{
                 display: "flex",
                 flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                height: "calc(100vh - 60px)",
-                fontSize: "24px",
-                gap: "20px"
+                height: "auto",
+                padding: "5px 25px 10px 25px",
+                background: "#C2D9C5"
             }}>
-                {activeOrg ? (
-                    <div style={{ textAlign: "center" }}>
-                        <h2>Welcome to {activeOrg.name}</h2>
-                        <p style={{ fontSize: "16px", color: "#666", marginTop: "-10px" }}>
-                            Org Code: <strong style={{ color: "#007bff" }}>{activeOrg.code}</strong>
-                        </p>
-                    </div>
-                ) : (
-                    <p>Create or join an organization to get started.</p>
-                )}
 
-                {message && <p style={{ color: "green", fontSize: "16px" }}>{message}</p>}
+            {/* organization header */}
+            {activeOrg && (
+                <div style={{
+                    background: "#f4f4f4",
+                    display: "flex",
+                    borderRadius: "6px",
+                    gap: "10px",
+                    padding: "12px 20px",
+                    marginBottom: "15px",
+                    alignItems: "center"
+                }}>
+                    <span style={{ fontSize: "18px" }}>☰</span>
+                    <span style={{ fontWeight: "500" }}>
+                        {activeOrg.name}
+                    </span>
+                </div>  
+            )}
+            <div style={{
+                maxWidth: "1100px",
+                margin: "0 auto",
+                width: "100%",
+            }}>
 
-                <button
-                    onClick={() => setEventOpen(!eventOpen)}
-                    style={{ padding: "10px 20px", fontSize: "16px", cursor: "pointer" }}
-                >
-                    Create Event ▾
-                </button>
+            <div style={{
+                display: "flex",
+                gap: "30px",
+                marginTop: "10px",
+                alignItems: "flex-start"
+            }}>
+                <div style={{
+                    flex: 1,
+                    background: "#e9e9e9",
+                    padding: "15px",
+                    borderRadius: "6px",
+                    minHeight: "350px"
+                }}> 
+                    <div className="section-header">Events</div>
+                        <button
+                        onClick={() => setEventOpen(!eventOpen)}
+                        style={{ padding: "10px 20px", fontSize: "16px", cursor: "pointer" }}
+                        >
+                        Create Event ▾
+                        </button>
 
-                {eventOpen && (
-                    <div style={{
-                        background: "#f5f5f5",
-                        border: "1px solid #ccc",
-                        borderRadius: "8px",
-                        padding: "15px",
-                        width: "300px",
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "10px"
-                    }}>
-                        <input type="text" placeholder="Event name" value={eventName} onChange={(e) => setEventName(e.target.value)} style={{ padding: "8px", fontSize: "14px" }} />
-                        <input type="text" placeholder="Date" value={eventDate} onChange={(e) => setEventDate(e.target.value)} style={{ padding: "8px", fontSize: "14px" }} />
-                        <input type="text" placeholder="Description" value={eventDescription} onChange={(e) => setEventDescription(e.target.value)} style={{ padding: "8px", fontSize: "14px" }} />
-                        <input type="text" placeholder="Place" value={eventPlace} onChange={(e) => setEventPlace(e.target.value)} style={{ padding: "8px", fontSize: "14px" }} />
-                        <input type="text" placeholder="Time" value={eventTime} onChange={(e) => setEventTime(e.target.value)} style={{ padding: "8px", fontSize: "14px" }} />
-                        <button onClick={handleEventCreate}>Create</button>
-                    </div>
-                )}
+                        <div style={{ marginTop: "20px" }}>
+                            <div style={{ background: "#d8c6e6", height: "45px", marginBottom: "12px", borderRadius: "6px" }}></div>
+                            <div style={{ background: "#a9c0d9", height: "45px", marginBottom: "12px", borderRadius: "6px" }}></div>
+                            <div style={{ background: "#e6c6d3", height: "45px", marginBottom: "12px", borderRadius: "6px" }}></div>
+                            <div style={{ background: "#e6cfae", height: "45px", marginBottom: "12px", borderRadius: "6px" }}></div>
+                        </div>
 
-                <button
+                        {eventOpen && (
+                            <div style={{
+                            background: "#f5f5f5",
+                            border: "1px solid #ccc",
+                            borderRadius: "8px",
+                            padding: "15px",
+                            width: "300px",
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "10px"
+                        }}>
+                            <input type="text" placeholder="Event name" value={eventName} onChange={(e) => setEventName(e.target.value)} style={{ padding: "8px", fontSize: "14px" }} />
+                            <input type="text" placeholder="Date" value={eventDate} onChange={(e) => setEventDate(e.target.value)} style={{ padding: "8px", fontSize: "14px" }} />
+                            <input type="text" placeholder="Description" value={eventDescription} onChange={(e) => setEventDescription(e.target.value)} style={{ padding: "8px", fontSize: "14px" }} />
+                            <input type="text" placeholder="Place" value={eventPlace} onChange={(e) => setEventPlace(e.target.value)} style={{ padding: "8px", fontSize: "14px" }} />
+                            <input type="text" placeholder="Time" value={eventTime} onChange={(e) => setEventTime(e.target.value)} style={{ padding: "8px", fontSize: "14px" }} />
+                            <button onClick={handleEventCreate}>Create</button>
+                        </div>
+                    )}
+                    
+                </div>
+
+                     {/* announcement portion */}
+                <div style={{
+                    flex: 1,
+                    background: "#e9e9e9",
+                    padding: "15px",
+                    borderRadius: "6px",
+                     minHeight: "350px"
+                }}>
+                    <div className="section-header">Announcements</div>
+                         <button
                     onClick={() => setAnnouncementOpen(!announcementOpen)}
                     style={{ padding: "10px 20px", fontSize: "16px", cursor: "pointer" }}
                 >
@@ -313,9 +374,20 @@ function Home() {
                         <button onClick={handleAnnouncementCreate}>Create</button>
                     </div>
                 )}
-            </div>
-        </div>
-    );
+                </div>  {/* closes announcements panel */}
+
+        </div>  {/* closes flex row */}
+        {message && (
+            <p style={{ color: "green", fontSize: "16px" }}>
+             {message}
+    </p>
+)}
+
+</div>  {/* closes maxWidth wrapper */}
+</div>  
+</div>  
+
+);
 }
 
 export default Home;

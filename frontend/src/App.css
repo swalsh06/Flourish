@@ -1,9 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
-
+@import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
 body {
   margin: 0;
   font-family: 'Poppins', sans-serif;
 }
+
+
 
 .background {
   background-color: #C2D9C5;
@@ -102,4 +104,20 @@ form {
 .link-text:hover {
   color: #4e6f58;
   text-decoration: underline;
+}
+
+.title{
+  font-family : 'Great Vibes', cursive;
+  font-size: 55px;
+  font-weight: normal;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.section-header {
+  background-color: #8FAF95;
+  color: white;
+  padding: 10px;
+  font-weight: 500;
+  border-radius: 4px;
+  margin-bottom: 10px;
 }
