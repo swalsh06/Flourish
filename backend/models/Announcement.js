@@ -12,12 +12,12 @@ const AnnouncementSchema = new mongoose.Schema({
     trim: true
   },
   createdBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User"
+    type: String,
+    trim: true
   },
   readBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User"
+    type: [String],
+    default: []
   },
 }, 
 { timestamps: true}
