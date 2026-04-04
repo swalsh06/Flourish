@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 function Home() {
     const [joinOpen, setJoinOpen] = useState(false);
     const [joinCode, setJoinCode] = useState("");
     const [joinName, setJoinName] = useState("");
-    const [orgSelectOpen, setOrgSelectOpen] = useState(false);
-    const [open, setOpen] = useState(false);
+
+    //const [orgSelectOpen, setOrgSelectOpen] = useState(false);
+    //const [open, setOpen] = useState(false);
 
     const userId = localStorage.getItem("userId");
     const [organizations, setOrganizations] = useState(() => {
@@ -19,23 +20,47 @@ function Home() {
         }
         return [];
     });
-
     const [activeOrg, setActiveOrg] = useState(null);
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [showForm, setShowForm] = useState(null);
-
     const [orgName, setOrgName] = useState("");
-    const [createdOrg, setCreatedOrg] = useState(null);
+    const [message, setMessage] = useState("");
+    
+    // Events state
     const [eventOpen, setEventOpen] = useState(false);
     const [eventName, setEventName] = useState("");
     const [eventDate, setEventDate] = useState("");
     const [eventDescription, setEventDescription] = useState("");
     const [eventPlace, setEventPlace] = useState("");
     const [eventTime, setEventTime] = useState("");
+    const [events, setEvents] = useState([]);
+
+    // Announcements state
     const [announcementOpen, setAnnouncementOpen] = useState(false);
     const [announcementTitle, setAnnouncementTitle] = useState("");
     const [announcementMessage, setAnnouncementMessage] = useState("");
-    const [message, setMessage] = useState("");
+    const [announcements, setAnnouncements] = useState([]);
+
+    useEffect(() => {
+    if (!activeOrg) return;
+
+    const fetchOrgData = async () => {
+        try {
+            const [eventsRes, announcementsRes] = await Promise.all([
+                fetch(`http://localhost:5000/organizations/${activeOrg._id}/events`),
+                fetch(`http://localhost:5000/organizations/${activeOrg._id}/announcements`)
+            ]);
+            if (eventsRes.ok) setEvents(await eventsRes.json());
+            if (announcementsRes.ok) setAnnouncements(await announcementsRes.json());
+        } catch (err) {
+            console.error("Error fetching org data:", err);
+        }
+    };
+
+    fetchOrgData();
+}, [activeOrg]);
+
+
 
     const generateCode = () => {
         return Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -90,67 +115,58 @@ function Home() {
     };
 
     const handleEventCreate = async () => {
-        console.log("Create event button clicked");
+    try {
+        const response = await fetch("http://localhost:5000/events", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                event: eventName,
+                date: eventDate,
+                description: eventDescription,
+                place: eventPlace,
+                time: eventTime,
+                organizationId: activeOrg._id
+            })
+        });
 
-        const eventData = {
-            event: eventName,
-            date: eventDate,
-            description: eventDescription,
-            place: eventPlace,
-            time: eventTime
-        };
-
-        try {
-            const response = await fetch("http://localhost:5000/events", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(eventData)
-            });
-
-            const data = await response.json();
-            console.log("Saved event:", data);
-            setMessage("Event created successfully!");
-
-            setEventName("");
-            setEventDate("");
-            setEventDescription("");
-            setEventPlace("");
-            setEventTime("");
+        if (response.ok) {
+            const newEvent = await response.json();
+            setEvents(prev => [...prev, newEvent]);
+            setEventName(""); setEventDate(""); setEventDescription("");
+            setEventPlace(""); setEventTime("");
             setEventOpen(false);
-        } catch (error) {
-            console.error("Error saving event:", error);
+            setMessage("Event created successfully!");
         }
-    };
+    } catch (error) {
+        console.error("Error saving event:", error);
+    }
+};
 
         const handleAnnouncementCreate = async () => {
-            const announcementData = {
+    try {
+        const response = await fetch("http://localhost:5000/announcements", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
                 title: announcementTitle,
                 message: announcementMessage,
-                organizer: "Flourish Team",
-                createdBy: "Flourish User"
-            };
-        try {
-            const response = await fetch("http://localhost:5000/announcements", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(announcementData)
-            });
+                createdBy: userId,
+                organizationId: activeOrg._id
+            })
+        });
 
-            const data = await response.json();
-            console.log("Saved announcement:", data);
-            setMessage("Announcement created successfully!");
-
+        if (response.ok) {
+            const newAnnouncement = await response.json();
+            setAnnouncements(prev => [...prev, newAnnouncement]);
             setAnnouncementTitle("");
             setAnnouncementMessage("");
             setAnnouncementOpen(false);
-        } catch (error) {
-            console.error("Error saving announcement:", error);
+            setMessage("Announcement created successfully!");
         }
-    };
+    } catch (error) {
+        console.error("Error saving announcement:", error);
+    }
+};
 
     return (
         <div style={{ height: "100vh", background: "#C2D9C5" }}>
@@ -313,11 +329,23 @@ function Home() {
                         Create Event ▾
                         </button>
 
-                        <div style={{ marginTop: "20px" }}>
-                            <div style={{ background: "#d8c6e6", height: "45px", marginBottom: "12px", borderRadius: "6px" }}></div>
-                            <div style={{ background: "#a9c0d9", height: "45px", marginBottom: "12px", borderRadius: "6px" }}></div>
-                            <div style={{ background: "#e6c6d3", height: "45px", marginBottom: "12px", borderRadius: "6px" }}></div>
-                            <div style={{ background: "#e6cfae", height: "45px", marginBottom: "12px", borderRadius: "6px" }}></div>
+                        <div style={{ marginTop: "15px", display: "flex", flexDirection: "column", gap: "10px" }}>
+                            {events.length === 0 && (
+                                <p style={{ color: "#888", fontSize: "14px" }}>No events yet.</p>
+                            )}
+                            {events.map(ev => (
+                                <div key={ev._id} style={{
+                                    background: "white", borderRadius: "8px",
+                                    padding: "12px 16px", boxShadow: "0 1px 4px rgba(0,0,0,0.08)"
+                                }}>
+                                    <div style={{ fontWeight: "bold", fontSize: "15px" }}>{ev.event}</div>
+                                    <div style={{ fontSize: "13px", color: "#555", marginTop: "4px" }}>
+                                        📅 {new Date(ev.date).toLocaleDateString()} &nbsp;·&nbsp; 🕐 {ev.time}
+                                    </div>
+                                    <div style={{ fontSize: "13px", color: "#555" }}>📍 {ev.place}</div>
+                                    <div style={{ fontSize: "13px", marginTop: "6px" }}>{ev.description}</div>
+                                </div>
+                            ))}
                         </div>
 
                         {eventOpen && (
@@ -374,6 +402,23 @@ function Home() {
                         <button onClick={handleAnnouncementCreate}>Create</button>
                     </div>
                 )}
+                    <div style={{ marginTop: "15px", display: "flex", flexDirection: "column", gap: "10px" }}>
+                        {announcements.length === 0 && (
+                            <p style={{ color: "#888", fontSize: "14px" }}>No announcements yet.</p>
+                        )}
+                        {announcements.map(ann => (
+                            <div key={ann._id} style={{
+                                background: "white", borderRadius: "8px",
+                                padding: "12px 16px", boxShadow: "0 1px 4px rgba(0,0,0,0.08)"
+                            }}>
+                                <div style={{ fontWeight: "bold", fontSize: "15px" }}>{ann.title}</div>
+                                <div style={{ fontSize: "13px", color: "#888", marginTop: "2px" }}>
+                                    {new Date(ann.createdAt).toLocaleDateString()}
+                                </div>
+                                <div style={{ fontSize: "13px", marginTop: "6px" }}>{ann.message}</div>
+                            </div>
+                        ))}
+                    </div>
                 </div>  {/* closes announcements panel */}
 
         </div>  {/* closes flex row */}

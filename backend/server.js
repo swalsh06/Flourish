@@ -122,6 +122,29 @@ app.get("/organizations/user/:userId", async (req, res) => {
   }
 });
 
+// Get events for an org
+app.get("/organizations/:id/events", async (req, res) => {
+  try {
+    const org = await Organization.findById(req.params.id).populate("events");
+    if (!org) return res.status(404).send("Organization not found");
+    res.json(org.events);
+  } catch (error) {
+    res.status(500).send("Error fetching events");
+  }
+});
+
+// Get announcements for an org
+app.get("/organizations/:id/announcements", async (req, res) => {
+  try {
+    const org = await Organization.findById(req.params.id).populate("announcements");
+    if (!org) return res.status(404).send("Organization not found");
+    res.json(org.announcements);
+  } catch (error) {
+    res.status(500).send("Error fetching announcements");
+  }
+});
+
+
 // Start server
 app.listen(5000, () => {
   console.log("Server running on port 5000");
