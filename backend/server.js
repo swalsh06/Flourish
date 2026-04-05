@@ -48,7 +48,10 @@ app.post("/login", async (req, res) => {
   const { username, password } = req.body;
 
   // find the user
-  const user = await User.findOne({ username }).populate("organizations");
+  const user = await User.findOne({ username }).populate({
+    path: "organizations",
+    populate: { path: "members", select: "username" }
+  });
 
   if (!user) {
     return res.status(400).send("User not found");
@@ -68,10 +71,12 @@ app.post("/login", async (req, res) => {
   });
 });
 
-// Create org
+//--Create org--
 app.post("/organizations/create", async (req, res) => {
   const { name, userId } = req.body;
   try {
+    const existing = await Organization.findOne({ name: { $regex: new RegExp(`^${name}$`, 'i') } });
+    if (existing) return res.status(400).send("An organization with that name already exists");
     const code = Math.random().toString(36).substring(2, 8).toUpperCase();
 
     const org = new Organization({ 
@@ -90,7 +95,7 @@ app.post("/organizations/create", async (req, res) => {
   }
 });
 
-// Join org by code
+//--Join org by code--
 app.post("/organizations/join", async (req, res) => {
   const { code, userId } = req.body;
   try {
@@ -106,13 +111,14 @@ app.post("/organizations/join", async (req, res) => {
     org.members.push(userId);
     await org.save();
     await User.findByIdAndUpdate(userId, { $push: { organizations: org._id } });
+    const populatedOrg = await Organization.findById(org._id).populate("members", "username");
     res.json(org);
   } catch (error) {
     res.status(500).send("Error joining organization");
   }
 });
 
-// Get user's orgs
+//--Get user's orgs--
 app.get("/organizations/user/:userId", async (req, res) => {
   try {
     const user = await User.findById(req.params.userId).populate("organizations");
@@ -122,7 +128,7 @@ app.get("/organizations/user/:userId", async (req, res) => {
   }
 });
 
-// Get events for an org
+//--Get events for an org--
 app.get("/organizations/:id/events", async (req, res) => {
   try {
     const org = await Organization.findById(req.params.id).populate("events");
@@ -133,7 +139,7 @@ app.get("/organizations/:id/events", async (req, res) => {
   }
 });
 
-// Get announcements for an org
+//--Get announcements for an org--
 app.get("/organizations/:id/announcements", async (req, res) => {
   try {
     const org = await Organization.findById(req.params.id).populate("announcements");

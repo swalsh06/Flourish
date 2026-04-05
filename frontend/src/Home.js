@@ -21,10 +21,13 @@ function Home() {
         return [];
     });
     const [activeOrg, setActiveOrg] = useState(null);
+    const isOwner = activeOrg?.owner === userId || activeOrg?.owner?._id === userId;
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [showForm, setShowForm] = useState(null);
     const [orgName, setOrgName] = useState("");
     const [message, setMessage] = useState("");
+    const [showMembers, setShowMembers] = useState(false);
+    const [createOrgError, setCreateOrgError] = useState("");
     
     // Events state
     const [eventOpen, setEventOpen] = useState(false);
@@ -85,6 +88,9 @@ function Home() {
             setShowForm(null);
             setDropdownOpen(false);
             setMessage(`Organization Created! Code: ${newOrg.code}`);
+        } else {
+            const text = await res.text();
+            setCreateOrgError(text);
         }
     };
 
@@ -242,8 +248,11 @@ function Home() {
                                         onChange={e => setOrgName(e.target.value)}
                                         style={{ padding: "6px", fontSize: "14px" }}
                                     />
+                                    {createOrgError && (
+                                        <p style={{ color: "red", fontSize: "12px", margin: 0 }}>{createOrgError}</p>
+                                    )}
                                     <button onClick={handleCreate}>Create</button>
-                                    <button onClick={() => setShowForm(null)}>Cancel</button>
+                                    <button onClick={() => { setShowForm(null); setCreateOrgError(""); }}>Cancel</button>
                                 </div>
                             ) : showForm === "join" ? (
                                 <div style={{ padding: "10px 16px", display: "flex", flexDirection: "column", gap: "8px" }}>
@@ -300,6 +309,45 @@ function Home() {
                     <span style={{ fontWeight: "500" }}>
                         {activeOrg.name}
                     </span>
+
+                    {isOwner && (
+                        <div style={{ marginLeft: "auto", position: "relative" }}>
+                            <button
+                                onClick={() => setShowMembers(!showMembers)}
+                                style={{ padding: "6px 14px", fontSize: "13px", cursor: "pointer" }}
+                            >
+                                View Members
+                            </button>
+                            {showMembers && (
+                                <div style={{
+                                    position: "absolute",
+                                    right: 0,
+                                    top: "110%",
+                                    background: "white",
+                                    border: "1px solid #ddd",
+                                    borderRadius: "8px",
+                                    minWidth: "180px",
+                                    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                                    zIndex: 100,
+                                    padding: "8px 0"
+                                }}>
+                                    <div style={{ padding: "8px 16px", fontWeight: "bold", fontSize: "13px", borderBottom: "1px solid #eee", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                        Members
+                                        <span onClick={() => setShowMembers(false)} style={{ cursor: "pointer", color: "#888", fontWeight: "normal" }}>✕</span>
+                                    </div>
+                                    {activeOrg.members.length === 0 ? (
+                                        <div style={{ padding: "10px 16px", fontSize: "13px", color: "#888" }}>No members yet</div>
+                                    ) : (
+                                        activeOrg.members.map(m => (
+                                            <div key={m._id || m} style={{ padding: "8px 16px", fontSize: "14px" }}>
+                                                👤 {m.username || m}
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>  
             )}
             <div style={{
@@ -322,12 +370,14 @@ function Home() {
                     minHeight: "350px"
                 }}> 
                     <div className="section-header">Events</div>
-                        <button
-                        onClick={() => setEventOpen(!eventOpen)}
-                        style={{ padding: "10px 20px", fontSize: "16px", cursor: "pointer" }}
-                        >
-                        Create Event ▾
-                        </button>
+                        {isOwner && (
+                            <button
+                                onClick={() => setEventOpen(!eventOpen)}
+                                style={{ padding: "10px 20px", fontSize: "16px", cursor: "pointer" }}
+                            >
+                                Create Event ▾
+                            </button>
+                        )}
 
                         <div style={{ marginTop: "15px", display: "flex", flexDirection: "column", gap: "10px" }}>
                             {events.length === 0 && (
@@ -379,12 +429,14 @@ function Home() {
                      minHeight: "350px"
                 }}>
                     <div className="section-header">Announcements</div>
-                         <button
-                    onClick={() => setAnnouncementOpen(!announcementOpen)}
-                    style={{ padding: "10px 20px", fontSize: "16px", cursor: "pointer" }}
-                >
-                    Create Announcement ▾
-                </button>
+                        {isOwner && (
+                            <button
+                                onClick={() => setAnnouncementOpen(!announcementOpen)}
+                                style={{ padding: "10px 20px", fontSize: "16px", cursor: "pointer" }}
+                            >
+                                Create Announcement ▾
+                            </button>
+                        )}
 
                 {announcementOpen && (
                     <div style={{
