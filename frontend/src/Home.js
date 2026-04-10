@@ -428,7 +428,7 @@ function Home() {
                     minHeight: "350px"
                 }}> 
                     <div className="section-header">Events</div>
-                        {isOwner || isAdmin && (
+                        {(isOwner || isAdmin)&& (
                             <button
                                 onClick={() => setEventOpen(!eventOpen)}
                                 style={{ padding: "10px 20px", fontSize: "16px", cursor: "pointer" }}
@@ -487,7 +487,7 @@ function Home() {
                      minHeight: "350px"
                 }}>
                     <div className="section-header">Announcements</div>
-                        {isOwner || isAdmin && (
+                        {(isOwner || isAdmin) && (
                             <button
                                 onClick={() => setAnnouncementOpen(!announcementOpen)}
                                 style={{ padding: "10px 20px", fontSize: "16px", cursor: "pointer" }}
