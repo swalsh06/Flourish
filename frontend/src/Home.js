@@ -181,6 +181,23 @@ function Home() {
                         background: "#7c86b2",
                     }}></div>
 
+                    <button
+                        onClick={() => {
+                            localStorage.removeItem("token");
+                            window.location.href = "/";
+                        }}
+                        style={{
+                            padding: "6px 14px",
+                            fontSize: "12px",
+                            cursor: "pointer",
+                            borderRadius: "6px",
+                            border: "none",
+                            background: "#ddd"
+                        }}
+                    >
+                        Logout
+                    </button>
+
                     <div style={{ position: "relative" }}> 
                     <button
                         onClick={() => { setDropdownOpen(!dropdownOpen); setShowForm(null); }}
@@ -332,10 +349,10 @@ function Home() {
                             gap: "10px"
                         }}>
                             <input type="text" placeholder="Event name" value={eventName} onChange={(e) => setEventName(e.target.value)} style={{ padding: "8px", fontSize: "14px" }} />
-                            <input type="text" placeholder="Date" value={eventDate} onChange={(e) => setEventDate(e.target.value)} style={{ padding: "8px", fontSize: "14px" }} />
+                            <input type="date" value={eventDate} onChange={(e) => setEventDate(e.target.value)} style={{ padding: "8px", fontSize: "14px" }} />
                             <input type="text" placeholder="Description" value={eventDescription} onChange={(e) => setEventDescription(e.target.value)} style={{ padding: "8px", fontSize: "14px" }} />
                             <input type="text" placeholder="Place" value={eventPlace} onChange={(e) => setEventPlace(e.target.value)} style={{ padding: "8px", fontSize: "14px" }} />
-                            <input type="text" placeholder="Time" value={eventTime} onChange={(e) => setEventTime(e.target.value)} style={{ padding: "8px", fontSize: "14px" }} />
+                            <input type="time" value={eventTime} onChange={(e) => setEventTime(e.target.value)} style={{ padding: "8px", fontSize: "14px" }} />
                             <button onClick={handleEventCreate}>Create</button>
                         </div>
                     )}
