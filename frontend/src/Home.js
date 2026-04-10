@@ -193,49 +193,36 @@ function Home() {
 };
 
     return (
-        <div style={{ height: "100vh", background: "#C2D9C5" }}>
+        <div style={{ minHeight: "100vh", background: "#C2D9C5" }}>
             {/* Navbar */}
             <div style={{
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                padding: "5px 24px",
+                padding: "0px 24px",
+                height: "100px",
                 position: "relative",
             }}>
                 <h2 className="title">Flourish</h2>
 
                 <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
-                    {/* Notification */}
-                    <div style={{
-                        background: "#e6e6e6",
-                        padding: "6px 14px",
-                        borderRadius: "12px",
-                        fontSize: "14px",
-                    }}>Notifications</div>
-
-                    {/* profile circle */}
-                    <div style={{
-                        width: "35px",
-                        height: "35px",
-                        borderRadius: "50%",
-                        background: "#7c86b2",
-                    }}></div>
+                    
 
                     <button
                         onClick={() => {
-                            localStorage.removeItem("token");
-                            window.location.href = "/";
-                        }}
-                        style={{
-                            padding: "6px 14px",
-                            fontSize: "12px",
-                            cursor: "pointer",
-                            borderRadius: "6px",
-                            border: "none",
-                            background: "#ddd"
+                        localStorage.removeItem("token");
+                        window.location.href = "/";
+                    }}
+                    style={{
+                        padding: "10px 20px",
+                        fontSize: "14px",
+                        cursor: "pointer",
+                        borderRadius: "2px",
+                        border: "1px solid #888",
+                        background: "#eaeaea"        
                         }}
                     >
-                        Logout
+                    Logout
                     </button>
 
                     <div style={{ position: "relative" }}> 
@@ -325,7 +312,7 @@ function Home() {
                 display: "flex",
                 flexDirection: "column",
                 height: "auto",
-                padding: "5px 25px 10px 25px",
+                padding: "0 25px 10px 25px",
                 background: "#C2D9C5"
             }}>
 
@@ -337,16 +324,26 @@ function Home() {
                     borderRadius: "6px",
                     gap: "10px",
                     padding: "12px 20px",
-                    marginBottom: "15px",
+                    marginBottom: "5px",
                     alignItems: "center"
                 }}>
-                    <span style={{ fontSize: "18px" }}>☰</span>
+                    
                     <span style={{ fontWeight: "500" }}>
                         {activeOrg.name}
                     </span>
 
                     {isOwner && (
-                        <div style={{ marginLeft: "auto", position: "relative" }}>
+                        <div style={{ marginLeft: "auto", position: "relative", display: "flex", alignItems: "center", gap: "12px" }}>
+                            
+                            {/* Org Code */}
+                            <span style={{ 
+                                fontSize: "13px",
+                                fontWeight: "500",
+                                color: "#222"
+                            }}>
+                            {activeOrg.code}
+                            </span>
+
                             <button
                                 onClick={() => setShowMembers(!showMembers)}
                                 style={{ padding: "6px 14px", fontSize: "13px", cursor: "pointer" }}
@@ -409,7 +406,7 @@ function Home() {
                 </div>  
             )}
             <div style={{
-                maxWidth: "1100px",
+                maxWidth: "1400px",
                 margin: "0 auto",
                 width: "100%",
             }}>
@@ -422,12 +419,21 @@ function Home() {
             }}>
                 <div style={{
                     flex: 1,
-                    background: "#e9e9e9",
-                    padding: "15px",
+                    background: "#f6f4f4",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                    padding: "25px",
                     borderRadius: "6px",
-                    minHeight: "350px"
+                    minHeight: "450px"
                 }}> 
-                    <div className="section-header">Events</div>
+                    <div 
+                        className="section-header" 
+                        style={{ 
+                        fontSize: "18px",
+                        padding: "10px 14px",
+                        borderRadius: "6px",
+                        marginBottom: "12px"
+                        }}
+                        >Events</div>
                         {(isOwner || isAdmin)&& (
                             <button
                                 onClick={() => setEventOpen(!eventOpen)}
@@ -444,9 +450,9 @@ function Home() {
                             {events.map(ev => (
                                 <div key={ev._id} style={{
                                     background: "white", borderRadius: "8px",
-                                    padding: "12px 16px", boxShadow: "0 1px 4px rgba(0,0,0,0.08)"
+                                    padding: "16px 18px", boxShadow: "0 1px 4px rgba(0,0,0,0.08)"
                                 }}>
-                                    <div style={{ fontWeight: "bold", fontSize: "15px" }}>{ev.event}</div>
+                                    <div style={{ fontWeight: "bold", fontSize: "17px" }}>{ev.event}</div>
                                     <div style={{ fontSize: "13px", color: "#555", marginTop: "4px" }}>
                                         📅 {new Date(ev.date).toLocaleDateString()} &nbsp;·&nbsp; 🕐 {ev.time}
                                     </div>
@@ -461,7 +467,7 @@ function Home() {
                             background: "#f5f5f5",
                             border: "1px solid #ccc",
                             borderRadius: "8px",
-                            padding: "15px",
+                            padding: "25px",
                             width: "300px",
                             display: "flex",
                             flexDirection: "column",
@@ -481,12 +487,21 @@ function Home() {
                      {/* announcement portion */}
                 <div style={{
                     flex: 1,
-                    background: "#e9e9e9",
-                    padding: "15px",
+                    background: "#f6f4f4",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                    padding: "25px",
                     borderRadius: "6px",
-                     minHeight: "350px"
+                     minHeight: "450px"
                 }}>
-                    <div className="section-header">Announcements</div>
+                    <div 
+                        className="section-header" 
+                        style={{ 
+                        fontSize: "18px",
+                        padding: "10px 14px",
+                        borderRadius: "6px",
+                        marginBottom: "12px"
+                        }}
+                        >Announcements</div>
                         {(isOwner || isAdmin) && (
                             <button
                                 onClick={() => setAnnouncementOpen(!announcementOpen)}
@@ -501,7 +516,7 @@ function Home() {
                         background: "#f5f5f5",
                         border: "1px solid #ccc",
                         borderRadius: "8px",
-                        padding: "15px",
+                        padding: "25px",
                         width: "300px",
                         display: "flex",
                         flexDirection: "column",
@@ -519,9 +534,9 @@ function Home() {
                         {announcements.map(ann => (
                             <div key={ann._id} style={{
                                 background: "white", borderRadius: "8px",
-                                padding: "12px 16px", boxShadow: "0 1px 4px rgba(0,0,0,0.08)"
+                                padding: "16px 18px", boxShadow: "0 1px 4px rgba(0,0,0,0.08)"
                             }}>
-                                <div style={{ fontWeight: "bold", fontSize: "15px" }}>{ann.title}</div>
+                                <div style={{ fontWeight: "bold", fontSize: "17px" }}>{ann.title}</div>
                                 <div style={{ fontSize: "13px", color: "#888", marginTop: "2px" }}>
                                     {new Date(ann.createdAt).toLocaleDateString()}
                                 </div>
