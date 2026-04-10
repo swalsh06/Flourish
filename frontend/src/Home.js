@@ -28,6 +28,8 @@ function Home() {
     const [message, setMessage] = useState("");
     const [showMembers, setShowMembers] = useState(false);
     const [createOrgError, setCreateOrgError] = useState("");
+    const [confirmAdmin, setConfirmAdmin] = useState(null);
+    const isAdmin = activeOrg?.admins?.some(a => a._id === userId || a === userId);
     
     // Events state
     const [eventOpen, setEventOpen] = useState(false);
@@ -117,6 +119,22 @@ function Home() {
         } else {
             const text = await res.text();
             setMessage(text);
+        }
+    };
+
+    const handlePromoteAdmin = async (member) => {
+        const res = await fetch(`http://localhost:5000/organizations/${activeOrg._id}/admins`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userId: member._id }),
+        });
+        if (res.ok) {
+            const updatedOrg = await res.json();
+            setActiveOrg(updatedOrg);
+            const updatedOrgs = organizations.map(o => o._id === updatedOrg._id ? updatedOrg : o);
+            setOrganizations(updatedOrgs);
+            localStorage.setItem("organizations", JSON.stringify(updatedOrgs));
+            setConfirmAdmin(null);
         }
     };
 
@@ -352,14 +370,37 @@ function Home() {
                                         Members
                                         <span onClick={() => setShowMembers(false)} style={{ cursor: "pointer", color: "#888", fontWeight: "normal" }}>✕</span>
                                     </div>
-                                    {activeOrg.members.length === 0 ? (
+                                   {activeOrg.members.length === 0 ? (
                                         <div style={{ padding: "10px 16px", fontSize: "13px", color: "#888" }}>No members yet</div>
                                     ) : (
-                                        activeOrg.members.map(m => (
-                                            <div key={m._id || m} style={{ padding: "8px 16px", fontSize: "14px" }}>
-                                                👤 {m.username || m}
+                                        activeOrg.members.map(m => {
+                                            const memberIsAdmin = activeOrg.admins?.some(a => a._id === m._id);
+                                            return (
+                                                <div key={m._id || m} style={{ padding: "8px 16px", fontSize: "14px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                                    <span>
+                                                        {memberIsAdmin ? "⭐" : "👤"} {m.username || m}
+                                                        {memberIsAdmin && <span style={{ fontSize: "11px", color: "green", marginLeft: "6px" }}>admin</span>}
+                                                    </span>
+                                                    {!memberIsAdmin && (
+                                                        <span
+                                                            onClick={() => setConfirmAdmin(m)}
+                                                            style={{ cursor: "pointer", color: "#888", fontSize: "16px", marginLeft: "8px" }}
+                                                            title="Promote to admin"
+                                                        >+</span>
+                                                    )}
+                                                </div>
+                                            );
+                                        })
+                                    )}
+                                    {/* Confirm admin popup */}
+                                    {confirmAdmin && (
+                                        <div style={{ padding: "10px 16px", borderTop: "1px solid #eee", fontSize: "13px" }}>
+                                            <p style={{ margin: "0 0 8px 0" }}>Make <strong>{confirmAdmin.username}</strong> an admin?</p>
+                                            <div style={{ display: "flex", gap: "8px" }}>
+                                                <button onClick={() => handlePromoteAdmin(confirmAdmin)} style={{ flex: 1, padding: "4px", cursor: "pointer", background: "#4caf50", color: "white", border: "none", borderRadius: "4px" }}>Yes</button>
+                                                <button onClick={() => setConfirmAdmin(null)} style={{ flex: 1, padding: "4px", cursor: "pointer" }}>Cancel</button>
                                             </div>
-                                        ))
+                                        </div>
                                     )}
                                 </div>
                             )}
@@ -387,7 +428,7 @@ function Home() {
                     minHeight: "350px"
                 }}> 
                     <div className="section-header">Events</div>
-                        {isOwner && (
+                        {isOwner || isAdmin && (
                             <button
                                 onClick={() => setEventOpen(!eventOpen)}
                                 style={{ padding: "10px 20px", fontSize: "16px", cursor: "pointer" }}
@@ -446,7 +487,7 @@ function Home() {
                      minHeight: "350px"
                 }}>
                     <div className="section-header">Announcements</div>
-                        {isOwner && (
+                        {isOwner || isAdmin && (
                             <button
                                 onClick={() => setAnnouncementOpen(!announcementOpen)}
                                 style={{ padding: "10px 20px", fontSize: "16px", cursor: "pointer" }}

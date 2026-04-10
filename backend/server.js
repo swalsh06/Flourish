@@ -47,10 +47,13 @@ app.post("/signup", async (req, res) => {
 app.post("/login", async (req, res) => {
   const { username, password } = req.body;
 
-  // find the user
+  // find the user and/or admin
   const user = await User.findOne({ username }).populate({
     path: "organizations",
-    populate: { path: "members", select: "username" }
+    populate: [
+      { path: "members", select: "username" },
+      { path: "admins", select: "username" }
+    ]
   });
 
   if (!user) {
@@ -150,6 +153,23 @@ app.get("/organizations/:id/announcements", async (req, res) => {
   }
 });
 
+//--Promote member to admin--
+app.post("/organizations/:id/admins", async (req, res) => {
+  const { userId } = req.body;
+  try {
+    const org = await Organization.findById(req.params.id);
+    if (!org) return res.status(404).send("Organization not found");
+    if (org.admins.includes(userId)) return res.status(400).send("Already an admin");
+    org.admins.push(userId);
+    await org.save();
+    const populated = await Organization.findById(org._id)
+      .populate("members", "username")
+      .populate("admins", "username");
+    res.json(populated);
+  } catch (err) {
+    res.status(500).send("Error promoting to admin");
+  }
+});
 
 // Start server
 app.listen(5000, () => {
