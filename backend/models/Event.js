@@ -29,18 +29,9 @@ const EventSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User"
   },
-  rsvps: [
-    {
-      user: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User"
-      },
-      status: {
-        type: String,
-        enum: ['yes', 'no', 'maybe'],
-      }
-    }
-  ]
+  rsvpYes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  rsvpNo:  [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+
 },
   { timestamps: true }
 );

@@ -134,7 +134,10 @@ app.get("/organizations/user/:userId", async (req, res) => {
 //--Get events for an org--
 app.get("/organizations/:id/events", async (req, res) => {
   try {
-    const org = await Organization.findById(req.params.id).populate("events");
+    const org = await Organization.findById(req.params.id).populate({
+      path: "events",
+      populate: { path: "rsvpYes rsvpNo", select: "username" }
+    });
     if (!org) return res.status(404).send("Organization not found");
     res.json(org.events);
   } catch (error) {
