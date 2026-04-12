@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 const User = require("./models/User"); // import your User model
 const Organization = require("./models/Organization");
+const Event = require("./models/Event");
 const eventRoutes = require("./routes/eventRoutes");
 const announcementRoutes = require("./routes/announcementRoutes");
 
@@ -171,6 +172,53 @@ app.post("/organizations/:id/admins", async (req, res) => {
     res.json(populated);
   } catch (err) {
     res.status(500).send("Error promoting to admin");
+  }
+});
+
+//--Demote admin back to member--
+app.delete("/organizations/:id/admins/:userId", async (req, res) => {
+  try {
+    const org = await Organization.findById(req.params.id);
+    if (!org) return res.status(404).send("Organization not found");
+    org.admins = org.admins.filter(a => a.toString() !== req.params.userId);
+    await org.save();
+    const populated = await Organization.findById(org._id)
+      .populate("members", "username")
+      .populate("admins", "username");
+    res.json(populated);
+  } catch (err) {
+    res.status(500).send("Error demoting admin");
+  }
+});
+
+//--Remove member from org--
+app.delete("/organizations/:id/members/:userId", async (req, res) => {
+  try {
+    const org = await Organization.findById(req.params.id);
+    if (!org) return res.status(404).send("Organization not found");
+    org.members = org.members.filter(m => m.toString() !== req.params.userId);
+    org.admins = org.admins.filter(a => a.toString() !== req.params.userId);
+    await org.save();
+
+    // Remove their RSVPs from all org events
+    const Event = require("./models/Event");
+    await Event.updateMany(
+        { _id: { $in: org.events } },
+        { 
+            $pull: { 
+                rsvpYes: new mongoose.Types.ObjectId(req.params.userId),
+                rsvpNo: new mongoose.Types.ObjectId(req.params.userId)
+            } 
+        }
+    );
+
+    await User.findByIdAndUpdate(req.params.userId, { $pull: { organizations: org._id } });
+    const populated = await Organization.findById(org._id)
+      .populate("members", "username")
+      .populate("admins", "username");
+    res.json(populated);
+  } catch (err) {
+    res.status(500).send("Error removing member");
   }
 });
 

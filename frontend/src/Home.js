@@ -30,6 +30,8 @@ function Home() {
     const [createOrgError, setCreateOrgError] = useState("");
     const [confirmAdmin, setConfirmAdmin] = useState(null);
     const isAdmin = activeOrg?.admins?.some(a => a._id === userId || a === userId);
+    const [confirmRemove, setConfirmRemove] = useState(null);
+    const [confirmDemote, setConfirmDemote] = useState(null);
     
     // Events state
     const [eventOpen, setEventOpen] = useState(false);
@@ -134,6 +136,34 @@ function Home() {
             setOrganizations(updatedOrgs);
             localStorage.setItem("organizations", JSON.stringify(updatedOrgs));
             setConfirmAdmin(null);
+        }
+    };
+
+    const handleDemoteAdmin = async (member) => {
+        const res = await fetch(`http://localhost:5000/organizations/${activeOrg._id}/admins/${member._id}`, {
+            method: "DELETE",
+        });
+        if (res.ok) {
+            const updatedOrg = await res.json();
+            setActiveOrg(updatedOrg);
+            const updatedOrgs = organizations.map(o => o._id === updatedOrg._id ? updatedOrg : o);
+            setOrganizations(updatedOrgs);
+            localStorage.setItem("organizations", JSON.stringify(updatedOrgs));
+            setConfirmDemote(null);
+        }
+    };
+
+    const handleRemoveMember = async (member) => {
+        const res = await fetch(`http://localhost:5000/organizations/${activeOrg._id}/members/${member._id}`, {
+            method: "DELETE",
+        });
+        if (res.ok) {
+            const updatedOrg = await res.json();
+            setActiveOrg(updatedOrg);
+            const updatedOrgs = organizations.map(o => o._id === updatedOrg._id ? updatedOrg : o);
+            setOrganizations(updatedOrgs);
+            localStorage.setItem("organizations", JSON.stringify(updatedOrgs));
+            setConfirmRemove(null)
         }
     };
 
@@ -392,29 +422,69 @@ function Home() {
                                         activeOrg.members.map(m => {
                                             const memberIsAdmin = activeOrg.admins?.some(a => a._id === m._id);
                                             return (
-                                                <div key={m._id || m} style={{ padding: "8px 16px", fontSize: "14px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                                                    <span>
-                                                        {memberIsAdmin ? "⭐" : "👤"} {m.username || m}
-                                                        {memberIsAdmin && <span style={{ fontSize: "11px", color: "green", marginLeft: "6px" }}>admin</span>}
+                                                <div key={m._id || m} style={{
+                                                    padding: "8px 16px",
+                                                    fontSize: "14px",
+                                                    display: "flex",
+                                                    justifyContent: "space-between",
+                                                    alignItems: "center",
+                                                    gap: "8px"
+                                                }}>
+                                                    <span style={{ display: "flex", alignItems: "center", gap: "6px", minWidth: 0 }}>
+                                                        <span>{memberIsAdmin ? "⭐" : "👤"}</span>
+                                                        <span style={{ whiteSpace: "nowrap", color: memberIsAdmin ? "green" : "inherit" }}>{m.username || m}</span>
                                                     </span>
-                                                    {!memberIsAdmin && (
+                                                    <span style={{ display: "flex", alignItems: "center", gap: "8px", flexShrink: 0 }}>
+                                                        {memberIsAdmin ? (
+                                                            <span
+                                                                onClick={() => setConfirmDemote(m)}
+                                                                style={{ cursor: "pointer", color: "#888", fontSize: "18px", lineHeight: 1 }}
+                                                                title="Demote from admin"
+                                                            >-</span>
+                                                        ) : (
+                                                            <span
+                                                                onClick={() => setConfirmAdmin(m)}
+                                                                style={{ cursor: "pointer", color: "#888", fontSize: "18px", lineHeight: 1 }}
+                                                                title="Promote to admin"
+                                                            >+</span>
+                                                        )}
                                                         <span
-                                                            onClick={() => setConfirmAdmin(m)}
-                                                            style={{ cursor: "pointer", color: "#888", fontSize: "16px", marginLeft: "8px" }}
-                                                            title="Promote to admin"
-                                                        >+</span>
-                                                    )}
+                                                            onClick={() => setConfirmRemove(m)}
+                                                            style={{ cursor: "pointer", color: "#e74c3c", fontSize: "14px", lineHeight: 1 }}
+                                                            title="Remove from org"
+                                                        >✕</span>
+                                                    </span>
                                                 </div>
                                             );
                                         })
                                     )}
-                                    {/* Confirm admin popup */}
+                                    {/* Confirm promote popup */}
                                     {confirmAdmin && (
                                         <div style={{ padding: "10px 16px", borderTop: "1px solid #eee", fontSize: "13px" }}>
                                             <p style={{ margin: "0 0 8px 0" }}>Make <strong>{confirmAdmin.username}</strong> an admin?</p>
                                             <div style={{ display: "flex", gap: "8px" }}>
                                                 <button onClick={() => handlePromoteAdmin(confirmAdmin)} style={{ flex: 1, padding: "4px", cursor: "pointer", background: "#4caf50", color: "white", border: "none", borderRadius: "4px" }}>Yes</button>
                                                 <button onClick={() => setConfirmAdmin(null)} style={{ flex: 1, padding: "4px", cursor: "pointer" }}>Cancel</button>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {/* Confirm demote popup */}
+                                    {confirmDemote && (
+                                        <div style={{ padding: "10px 16px", borderTop: "1px solid #eee", fontSize: "13px" }}>
+                                            <p style={{ margin: "0 0 8px 0" }}>Demote <strong>{confirmDemote.username}</strong> from admin?</p>
+                                            <div style={{ display: "flex", gap: "8px" }}>
+                                                <button onClick={() => handleDemoteAdmin(confirmDemote)} style={{ flex: 1, padding: "4px", cursor: "pointer", background: "#e67e22", color: "white", border: "none", borderRadius: "4px" }}>Demote</button>
+                                                <button onClick={() => setConfirmDemote(null)} style={{ flex: 1, padding: "4px", cursor: "pointer" }}>Cancel</button>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {/* Confirm remove popup */}
+                                    {confirmRemove && (
+                                        <div style={{ padding: "10px 16px", borderTop: "1px solid #eee", fontSize: "13px" }}>
+                                            <p style={{ margin: "0 0 8px 0" }}>Remove <strong>{confirmRemove.username}</strong> from the org?</p>
+                                            <div style={{ display: "flex", gap: "8px" }}>
+                                                <button onClick={() => handleRemoveMember(confirmRemove)} style={{ flex: 1, padding: "4px", cursor: "pointer", background: "#e74c3c", color: "white", border: "none", borderRadius: "4px" }}>Remove</button>
+                                                <button onClick={() => setConfirmRemove(null)} style={{ flex: 1, padding: "4px", cursor: "pointer" }}>Cancel</button>
                                             </div>
                                         </div>
                                     )}
