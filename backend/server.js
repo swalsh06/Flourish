@@ -139,8 +139,21 @@ app.get("/organizations/:id/events", async (req, res) => {
       path: "events",
       populate: { path: "rsvpYes rsvpNo", select: "username" }
     });
+
     if (!org) return res.status(404).send("Organization not found");
-    res.json(org.events);
+
+    const sortedEvents = org.events.sort((a, b) => {
+      const aDateTime = new Date(
+        `${a.date.toISOString().split("T")[0]}T${a.time}`
+      );
+      const bDateTime = new Date(
+        `${b.date.toISOString().split("T")[0]}T${b.time}`
+      );
+
+      return aDateTime - bDateTime; // ascending (soonest first)
+    });
+
+    res.json(sortedEvents);
   } catch (error) {
     res.status(500).send("Error fetching events");
   }
