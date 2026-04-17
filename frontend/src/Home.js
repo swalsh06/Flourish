@@ -123,6 +123,19 @@ function Home() {
         }
     };
 
+    const handleLeaveOrg = async () => {
+        const res = await fetch(`http://localhost:5000/organizations/${activeOrg._id}/members/${userId}`, {
+            method: "DELETE",
+        });
+        if (res.ok) {
+            const updated = organizations.filter(o => o._id !== activeOrg._id);
+            setOrganizations(updated);
+            localStorage.setItem("organizations", JSON.stringify(updated));
+            setActiveOrg(updated[0] || null);
+        }
+    };
+
+
     const handlePromoteAdmin = async (member) => {
         const res = await fetch(`http://localhost:5000/organizations/${activeOrg._id}/admins`, {
             method: "POST",
@@ -263,12 +276,14 @@ function Home() {
                         window.location.href = "/";
                     }}
                     style={{
-                        padding: "10px 20px",
+                        padding: "8px 20px",
                         fontSize: "14px",
                         cursor: "pointer",
                         borderRadius: "2px",
-                        border: "1px solid #888",
-                        background: "#eaeaea"        
+                        color: "white",
+                        background: "#9b74a8",
+                        borderRadius: "4px",
+                        border: "none"        
                         }}
                     >
                     Logout
@@ -277,7 +292,7 @@ function Home() {
                     <div style={{ position: "relative" }}> 
                     <button
                         onClick={() => { setDropdownOpen(!dropdownOpen); setShowForm(null); }}
-                        style={{ padding: "8px 16px", fontSize: "14px", cursor: "pointer" }}
+                        style={{ padding: "8px 16px", fontSize: "14px", cursor: "pointer", background: "#9b74a8", color: "white", border: "none", borderRadius: "4px" }}
                     >
                         {activeOrg ? activeOrg.name : "Select Organization"} ▾
                     </button>
@@ -380,6 +395,15 @@ function Home() {
                     <span style={{ fontWeight: "500" }}>
                         {activeOrg.name}
                     </span>
+
+                    {!isOwner && (
+                        <button
+                            onClick={handleLeaveOrg}
+                            style={{ marginLeft: "auto", padding: "6px 14px", fontSize: "13px", cursor: "pointer", background: "#f7a299", color: "white", border: "none", borderRadius: "4px" }}
+                        >
+                            Leave
+                        </button>
+                    )}
 
                     {isOwner && (
                         <div style={{ marginLeft: "auto", position: "relative", display: "flex", alignItems: "center", gap: "12px" }}>
@@ -536,7 +560,9 @@ function Home() {
                             {events.length === 0 && (
                                 <p style={{ color: "#888", fontSize: "14px" }}>No events yet.</p>
                             )}
-                {events.map(ev => {
+                {events
+                .filter(ev => new Date(ev.date) >= new Date(new Date().toDateString()))
+                .map(ev => {
                     const userRsvp = getUserRsvp(ev);
                     return (
                         <div key={ev._id} style={{
@@ -550,15 +576,43 @@ function Home() {
                             <div style={{ fontSize: "13px", color: "#555" }}>📍 {ev.place}</div>
                             <div style={{ fontSize: "13px", marginTop: "6px" }}>{ev.description}</div>
 
-                            {/* RSVP section — goes here, after description */}
+                            {/* RSVP section */}
                             {(isOwner || isAdmin) ? (
-                                <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "12px" }}>
-                                    <span style={{ fontSize: "13px", color: "#555" }}>
-                                        ✅ {ev.rsvpYes?.length || 0} &nbsp; ❌ {ev.rsvpNo?.length || 0}
-                                    </span>
-                                    <button onClick={() => setRsvpPopupEvent(ev)}>
-                                        View RSVPs
-                                    </button>
+                                <div style={{ marginTop: "10px", display: "flex", flexDirection: "column", gap: "10px" }}>
+                                    {/* RSVP buttons for owners/admins */}
+                                    <div style={{ display: "flex", gap: "8px" }}>
+                                        <button
+                                            onClick={() => handleRsvp(ev._id, "yes")}
+                                            style={{
+                                                padding: "5px 14px", fontSize: "13px", cursor: "pointer",
+                                                borderRadius: "4px", border: "1px solid #ccc",
+                                                background: userRsvp === "yes" ? "#4caf50" : "white",
+                                                color: userRsvp === "yes" ? "white" : "#333",
+                                            }}
+                                        >
+                                            ✅ Yes
+                                        </button>
+                                        <button
+                                            onClick={() => handleRsvp(ev._id, "no")}
+                                            style={{
+                                                padding: "5px 14px", fontSize: "13px", cursor: "pointer",
+                                                borderRadius: "4px", border: "1px solid #ccc",
+                                                background: userRsvp === "no" ? "#e53935" : "white",
+                                                color: userRsvp === "no" ? "white" : "#333",
+                                            }}
+                                        >
+                                            ❌ No
+                                        </button>
+                                    </div>
+                                    {/* Count + View RSVPs */}
+                                    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                                        <span style={{ fontSize: "13px", color: "#555" }}>
+                                            ✅ {ev.rsvpYes?.length || 0} &nbsp; ❌ {ev.rsvpNo?.length || 0}
+                                        </span>
+                                        <button onClick={() => setRsvpPopupEvent(ev)}>
+                                            View RSVPs
+                                        </button>
+                                    </div>
                                 </div>
                             ) : (
                                 <div style={{ marginTop: "10px", display: "flex", gap: "8px" }}>
