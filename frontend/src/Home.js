@@ -561,8 +561,7 @@ function Home() {
                                 <p style={{ color: "#888", fontSize: "14px" }}>No events yet.</p>
                             )}
                 {events
-                .filter(ev => new Date(ev.date) >= new Date(new Date().toDateString()))
-                .map(ev => {
+                    .filter(ev => ev.date.slice(0, 10) >= new Date().toISOString().slice(0, 10))                .map(ev => {
                     const userRsvp = getUserRsvp(ev);
                     return (
                         <div key={ev._id} style={{
@@ -571,9 +570,8 @@ function Home() {
                         }}>
                             <div style={{ fontWeight: "bold", fontSize: "17px" }}>{ev.event}</div>
                             <div style={{ fontSize: "13px", color: "#555", marginTop: "4px" }}>
-                                📅 {new Date(ev.date).toLocaleDateString()} &nbsp;·&nbsp; 🕐 {ev.time}
+                                📅 {new Date(ev.date.slice(0, 10) + "T00:00:00").toLocaleDateString()} &nbsp;·&nbsp; 🕐 {ev.time}                            <div style={{ fontSize: "13px", color: "#555" }}>📍 {ev.place}</div>
                             </div>
-                            <div style={{ fontSize: "13px", color: "#555" }}>📍 {ev.place}</div>
                             <div style={{ fontSize: "13px", marginTop: "6px" }}>{ev.description}</div>
 
                             {/* RSVP section */}
@@ -714,7 +712,7 @@ function Home() {
                         {announcements.length === 0 && (
                             <p style={{ color: "#888", fontSize: "14px" }}>No announcements yet.</p>
                         )}
-                        {announcements.map(ann => (
+                        {[...announcements].reverse().map(ann => (
                             <div key={ann._id} style={{
                                 background: "white", borderRadius: "8px",
                                 padding: "16px 18px", boxShadow: "0 1px 4px rgba(0,0,0,0.08)"
